@@ -1,0 +1,51 @@
+import React, { useEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "App";
+import SignIn from "layouts/authentication/sign-in";
+import Dashboard from "layouts/dashboard";
+
+// Material Dashboard 2 React Context Provider
+import { MaterialUIControllerProvider } from "context";
+
+const AppWrapper = () => {
+  const [isLoggedIn, setLoggedIn] = useState(null); // Initially null to handle loading state
+  const [loading, setLoading] = useState(true); // State for loading spinner
+
+  useEffect(() => {
+    // Perform the API call here
+    const fetchData = async () => {
+      try {
+        const response = await fetch("https://navrang.mvd-tech.io/API/auth.php");
+        const data = await response.json();
+        setLoggedIn(data.loggedIn); // Set the logged-in state
+        console.log("API Response:", data);
+      } catch (error) {
+        console.error("Error fetching API data:", error);
+        setLoggedIn(false); // Handle the error case by setting it as not logged in
+      } finally {
+        setLoading(false); // After API call, stop loading
+      }
+    };
+
+    fetchData();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  if (loading) {
+    return <div>Loading...</div>; // Show loading message until we know if the user is logged in
+  }
+
+  return (
+    <BrowserRouter>
+      <MaterialUIControllerProvider>
+        {isLoggedIn ? <App /> : <App />}{" "}
+        {/* Render the app if logged in, else show the SignIn page */}
+      </MaterialUIControllerProvider>
+    </BrowserRouter>
+  );
+};
+
+const container = document.getElementById("app");
+const root = createRoot(container);
+
+root.render(<AppWrapper />);
